@@ -2,7 +2,15 @@ const express = require("express");
 const app = express();
 const PORT = 8000; //default port 8080
 
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
 app.set("view engine", "ejs")
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
 
 // data
 
@@ -19,6 +27,10 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
+});
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 // route - runs only when called
@@ -49,3 +61,7 @@ app.get("/urls/:shortURL", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
+
+function generateRandomString() {
+return Math.floor(100000 + Math.random() * 900000);
+}
