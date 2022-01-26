@@ -7,49 +7,35 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs")
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
-});
-
 // data
-
-// npm install nodemon (will keep server going if you save files)
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
+function generateRandomString() {
+  return Math.floor(100000 + Math.random() * 900000);
+  }
+// 
+
+app.post("/urls", (req, res) => {
+  let newShortUrl = generateRandomString()
+  urlDatabase[newShortUrl] = req.body.longURL
+  console.log(req.body);  // Log the POST request body to the console
+  res.redirect(`/urls/${newShortUrl}`);
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+res.redirect("/urls");
+
+})
+
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
-
-// route - runs only when called
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
- });
- 
- app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
- });
 
  app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
@@ -57,11 +43,12 @@ app.get("/set", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: [req.params.shortURL]
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]
   };
   res.render("urls_show", templateVars);
+  res.redirect('/urls/longURL');
 });
 
-function generateRandomString() {
-return Math.floor(100000 + Math.random() * 900000);
-}
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
