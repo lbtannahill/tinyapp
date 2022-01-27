@@ -54,6 +54,13 @@ app.get("/urls/register",  (req, res) => {
   res.render("urls_register", templateVars);
 } );
 
+app.get("/urls/login",  (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("urls_login", templateVars);
+} );
+
   app.get("/urls/new", (req, res) => {
     const templateVars = {
       username: req.cookies["username"],
@@ -114,6 +121,18 @@ if (req.body.email && req.body.password) {
   else {res.redirect('/400'); 
 
   }
+});
+app.post('/urls/login', (req,res) => {
+  const newEmail = req.body.email;
+  const newPassword = req.body.password;
+  const newId = generateRandomString();
+if (checkForEmail(users, req.body.email) !== true)
+{return res.redirect('/400') }
+if (checkForEmail(users, req.body.password) !== true)
+{return res.redirect('/400') }
+else {
+  res.cookie('username', newId)
+  return res.redirect('/urls'); }
 });
 
 
