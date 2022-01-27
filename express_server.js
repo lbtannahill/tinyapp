@@ -16,10 +16,43 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+const checkForEmail = function(object, value) {
+  let alreadyReg = false;
+  for (const item in object) {
+  for(let property in object[item]){
+    if (object[item][property] === value) {
+      alreadyReg = true;
+    }
+  }
+  }
+  return alreadyReg;
+  }
+
 function generateRandomString() {
   return Math.floor(100000 + Math.random() * 900000);
   }
+
 // Get Routes
+
+app.get("/urls/register",  (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("urls_register", templateVars);
+} );
 
   app.get("/urls/new", (req, res) => {
     const templateVars = {
@@ -28,17 +61,36 @@ function generateRandomString() {
     res.render("urls_new", templateVars);
   });
   
+ 
+
    app.get("/urls", (req, res) => {
     const templateVars = { urls: urlDatabase, username: req.cookies["username"],
   };
     res.render("urls_index", templateVars);
   });
+
+  app.get('/400', (req,res) => {
+    res.render('400');
+    res.end();
+  });
+  
+  app.get('*', (req,res) => {
+    res.render('404');
+    res.end();
+  });
+
+ 
+
   
   app.get("/urls/:shortURL", (req, res) => {
     const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]
     };
     res.render("urls_show", templateVars);
   });
+
+ 
+
+
 
 // Post Routes
 
@@ -48,6 +100,24 @@ app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   res.redirect(`/urls/${newShortUrl}`);
 });
+
+app.post('/urls/register', (req,res) => {
+  const newEmail = req.body.email;
+  const newPassword = req.body.password;
+  const newId = generateRandomString();
+if (checkForEmail(users, req.body.email) === true)
+{res.redirect('/400') }
+if (req.body.email && req.body.password) {
+  users[newId] = {id: newId, email: newEmail, password: newPassword};
+  res.cookie('username', newId)
+  res.redirect('/urls'); }
+  else {res.redirect('/400'); 
+
+  }
+});
+
+
+
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
@@ -70,6 +140,8 @@ app.post("/logout", (req, res) => {
   res.clearCookie('username', req.body.username)
   res.redirect("/urls");
 })
+
+
 
 
 app.listen(PORT, () => {
