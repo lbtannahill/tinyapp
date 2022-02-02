@@ -9,8 +9,6 @@ const PORT = 8000; //default port 8080
 const app = express();
 app.set("view engine", "ejs");
 
-
-
 //middlewear
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -191,7 +189,7 @@ app.post('/urls/register', (req,res) => {
 // logout
 
 app.post("/logout", (req, res) => {
-  
+  req.session = null
   res.redirect("/urls");
 });
 
@@ -199,21 +197,24 @@ app.post("/logout", (req, res) => {
 // create new URL
 
 app.get("/urls/new", (req, res) => {
+ 
   const userID = req.session['user_id']
   const templateVars = {
     urls: urlDatabase, user: users[userID], 
   };
-  if (!userID) {
-  res.redirect('/urls/login')}
-  else {
-  res.render("urls_new", templateVars);}
+
+  if(!userID)
+  {return res.redirect('/urls/login') };
+  
+  res.render("urls_new", templateVars);
 });
 
 // create short URL Show Pge
   
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.session['user_id']
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  urls: urlDatabase, user: users[userID]
+  shortboy = req.params.shortURL
+  const templateVars = { shortURL: shortboy, longURL: urlDatabase[shortboy],  urls: urlDatabase, user: users[userID]
   };
   res.render("urls_show", templateVars);
 });
@@ -221,8 +222,14 @@ app.get("/urls/:shortURL", (req, res) => {
 // send data to short URL Show Page
 
 app.post("/urls/:shortURL/", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect("/urls");
+  const userID = req.session['user_id']
+  longboy = req.body.longURL;
+  shortboy = req.params.shortURL
+  urlDatabase[shortboy] = {
+    longURL: longboy,
+    userID: userID };
+
+  res.redirect("/urls/:shortURL/");
 
 });
 
@@ -234,6 +241,17 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 });
 
+app.post("/urls/:id", (req, res) => {
+  const userID = req.params.user_id;
+  const userUrls = getUrlsForUser(userID, urlDatabase);
+  if (Object.keys(userUrls).includes(req.params.id)) {
+    const shortKey = req.params.id;
+    urlDatabase[shortKey].longURL = req.body.newURL;
+    res.redirect("/urls");
+  } else {
+    res.status(401).send("You don't have permission to edit this URL.");
+  }
+});
 
 // error pages 
 
